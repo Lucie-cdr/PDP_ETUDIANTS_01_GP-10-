@@ -27,7 +27,20 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 
 uint32_t delayMS;
 
+#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
+#define TIME_TO_SLEEP  5  
+RTC_DATA_ATTR int bootCount = 0;
+
 void setup() {
+
+  ++bootCount;
+  Serial.println("Boot number: " + String(bootCount));
+
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) +
+  " Seconds");
+
+
   Serial.begin(9600);
   // Initialize device.
   dht.begin();
@@ -56,10 +69,8 @@ void setup() {
   Serial.println(F("------------------------------------"));
   // Set delay between sensor readings based on sensor details.
   delayMS = sensor.min_delay / 1000;
-}
 
-void loop() {
-  // Delay between measurements.
+   // Delay between measurements.
   delay(delayMS);
   // Get temperature event and print its value.
   sensors_event_t event;
@@ -82,4 +93,14 @@ void loop() {
     Serial.print(event.relative_humidity);
     Serial.println(F("%"));
   }
+
+  Serial.println("Going to sleep now");
+  delay(1000);
+  Serial.flush(); 
+  esp_deep_sleep_start();
+  Serial.println("This will never be printed");
+} 
+
+void loop(){
+
 }
